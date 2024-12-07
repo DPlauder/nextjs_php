@@ -1,25 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 
 export default function Home() {
-  // State für Projekte
-  const [projects, setProjects] = useState([]);
-  const [projectName, setProjectName] = useState("");
-  const [projectDescription, setProjectDescription] = useState("");
-  const [githubUrl, setGithubUrl] = useState("");
-  const [status, setStatus] = useState("Offen");
-  const [category, setCategory] = useState("Frontend");
-  const [categories, setCategories] = useState([
-    { name: "Frontend", url: "" },
-    { name: "Backend", url: "" },
-    { name: "Fullstack", url: "" },
-    { name: "DevOps", url: "" },
-    { name: "Mobile", url: "" },
-  ]);
-  const [isAddingProject, setIsAddingProject] = useState(false);
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
-  const [newCategoryUrl, setNewCategoryUrl] = useState("");
+// State für Projekte und Kategorien
+const [projects, setProjects] = useState([]);
+const [categories, setCategories] = useState([]);
+const [projectName, setProjectName] = useState("");
+const [projectDescription, setProjectDescription] = useState("");
+const [githubUrl, setGithubUrl] = useState("");
+const [status, setStatus] = useState("Offen");
+const [category, setCategory] = useState("");
+const [isAddingProject, setIsAddingProject] = useState(false);
+const [isAddingCategory, setIsAddingCategory] = useState(false);
+const [newCategoryName, setNewCategoryName] = useState("");
+const [newCategoryUrl, setNewCategoryUrl] = useState("");
+
+
+  // Funktion zum Abrufen der Kategorien von der Datenbank
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("http://localhost?ressource=category", {
+        method:"GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+        setCategories(data); // Setze die Kategorien in den State
+      } else {
+        console.error("Fehler beim Laden der Kategorien");
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
 
   // Funktion zum Hinzufügen eines Projekts
   const addProject = () => {
@@ -38,10 +54,14 @@ export default function Home() {
       setProjectDescription("");
       setGithubUrl("");
       setStatus("Offen");
-      setCategory("Frontend");
+      setCategory(categories[0]?.name || "Keine Kategorien");
       setIsAddingProject(false);
     }
   };
+   // useEffect, um Kategorien zu laden, wenn die Komponente gemountet wird
+   useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // Funktion zum Hinzufügen einer neuen Kategorie
   const addCategory = async () => {
@@ -53,21 +73,16 @@ export default function Home() {
       };
   
       try {
-        console.log("hello if try:" );
-        const response = await fetch("http://localhost/category.routes.php", {
+        const response = await fetch("http://localhost?ressource=category", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(newCategoryData),
         });
-        console.log(response);
-        if (response.ok) {
-          
+        if (response.ok) {  
           // If the category is successfully added to the database
           const responseData = await response.json();
-          console.log("Category added:", responseData);
-          // Update the categories list
           setCategories([...categories, newCategoryData]);
           setNewCategoryName("");
           setNewCategoryUrl("");
