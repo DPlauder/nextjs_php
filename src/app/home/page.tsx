@@ -27,8 +27,7 @@ const [newCategoryUrl, setNewCategoryUrl] = useState("");
       });
       if (response.ok) {
         const data = await response.json();
-        console.log(data);
-        setCategories(data); // Setze die Kategorien in den State
+        setCategories(data);
       } else {
         console.error("Fehler beim Laden der Kategorien");
       }
@@ -36,6 +35,10 @@ const [newCategoryUrl, setNewCategoryUrl] = useState("");
       console.error("Error fetching categories:", error);
     }
   };
+   // useEffect, um Kategorien zu laden, wenn die Komponente gemountet wird
+   useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // Funktion zum Hinzufügen eines Projekts
   const addProject = () => {
@@ -58,10 +61,7 @@ const [newCategoryUrl, setNewCategoryUrl] = useState("");
       setIsAddingProject(false);
     }
   };
-   // useEffect, um Kategorien zu laden, wenn die Komponente gemountet wird
-   useEffect(() => {
-    fetchCategories();
-  }, []);
+  
 
   // Funktion zum Hinzufügen einer neuen Kategorie
   const addCategory = async () => {
