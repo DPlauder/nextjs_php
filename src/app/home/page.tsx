@@ -5,15 +5,25 @@ export default function Home() {
 // State für Projekte und Kategorien
 const [projects, setProjects] = useState([]);
 const [categories, setCategories] = useState([]);
+
+const [isAddingProject, setIsAddingProject] = useState(false);
 const [projectName, setProjectName] = useState("");
 const [projectDescription, setProjectDescription] = useState("");
 const [githubUrl, setGithubUrl] = useState("");
-const [status, setStatus] = useState("Offen");
 const [category, setCategory] = useState("");
-const [isAddingProject, setIsAddingProject] = useState(false);
+
+
 const [isAddingCategory, setIsAddingCategory] = useState(false);
 const [newCategoryName, setNewCategoryName] = useState("");
 const [newCategoryUrl, setNewCategoryUrl] = useState("");
+
+// State für Techs hinzufügen
+const [techs, setTechs] = useState([]);
+const [isAddingTech, setIsAddingTech] = useState(false);
+const [newTechName, setNewTechName] = useState("");
+const [newTechUrl, setNewTechUrl] = useState("");
+
+const [selectedTechs, setSelectedTechs] = useState([]);
 
 
   // Funktion zum Abrufen der Kategorien von der Datenbank
@@ -40,29 +50,68 @@ const [newCategoryUrl, setNewCategoryUrl] = useState("");
     fetchCategories();
   }, []);
 
-  // Funktion zum Hinzufügen eines Projekts
-  const addProject = () => {
-    if (projectName.trim() !== "" && projectDescription.trim() !== "") {
-      setProjects([
-        ...projects,
-        {
-          name: projectName,
-          description: projectDescription,
-          githubUrl: githubUrl,
-          status: status,
-          category: category,
-        },
-      ]);
-      setProjectName("");
-      setProjectDescription("");
-      setGithubUrl("");
-      setStatus("Offen");
-      setCategory(categories[0]?.name || "Keine Kategorien");
-      setIsAddingProject(false);
+  const fetchTechs = async() => {
+    try{
+      const response = await fetch("http://localhost?ressource=tech", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if(response.ok){
+        const data = await response.json();
+        setTechs(data);
+      }else{
+        console.error("Fehler beim Laden der Techs");
+      }
+    }catch(error){
+      console.error("Eroor fetching techs:", error);
     }
   };
-  
+  useEffect(() => {
+    fetchTechs();
+  }, []);
 
+
+  // Funktion zum Hinzufügen eines Projekts
+  const addProject = async () => {
+    console.log(category);
+      if (projectName.trim() !== "" && projectDescription.trim() !== "") {
+        const newProjectData = {
+          name: projectName,
+          description: projectDescription,
+          github_url: githubUrl,
+          category_uuid: category,
+          tech_uuids: selectedTechs,
+        };
+        
+        try {
+          const response = await fetch("http://localhost?ressource=project", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newProjectData),
+          });
+          if (response.ok) {
+            const responseData = await response.json();
+            setProjects([...projects, newProjectData]);
+            setProjectName("");
+            setProjectDescription("");
+            setGithubUrl("");
+            setCategory(categories[0]?.uuid || "Keine Kategorien");
+            setSelectedTechs([]);
+            setIsAddingProject(false);
+          } else {
+            console.error("Failed to add project");
+          }
+
+        } catch (error) {
+          console.error("Error adding project:", error);
+      }
+    };
+  }
+  
   // Funktion zum Hinzufügen einer neuen Kategorie
   const addCategory = async () => {
     if (newCategoryName.trim() !== "") {
@@ -94,6 +143,34 @@ const [newCategoryUrl, setNewCategoryUrl] = useState("");
         console.error("Error adding category:", error);
       }
     }
+  };
+  const addTech = async() => {
+    if (newTechName.trim() !== "" && newTechUrl.trim() !== "") {
+      const newTech = {
+        name: newTechName,
+        url: newTechUrl,
+      };
+      try{
+        const response = await fetch("http://localhost?ressource=tech",{
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newTech),
+        });
+        if(response.ok){
+          setTechs([...techs, newTech]);
+          setNewTechName("");
+          setNewTechUrl("");
+          setIsAddingTech(false);
+        } else{
+          console.error("Failed to add tech");
+        }  
+      } catch(error){
+        console.error("Error adding category:", error);
+      }
+      
+    }     
   };
 
   return (
@@ -138,23 +215,30 @@ const [newCategoryUrl, setNewCategoryUrl] = useState("");
                 placeholder="GitHub URL eingeben"
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-              >
-                <option value="Offen">Offen</option>
-                <option value="In Bearbeitung">In Bearbeitung</option>
-                <option value="Abgeschlossen">Abgeschlossen</option>
-              </select>
+              
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
               >
                 {categories.map((cat, index) => (
-                  <option key={index} value={cat.name}>
+                  <option key={index} value={cat.uuid}>
                     {cat.name}
+                  </option>
+                ))}
+              </select>
+              
+              <select
+                multiple
+                value={selectedTechs}
+                onChange={(e) =>
+                  setSelectedTechs(Array.from(e.target.selectedOptions, (option) => option.value))
+                }
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                {techs.map((tech, index) => (
+                  <option key={index} value={tech.uuid}>
+                    {tech.name}
                   </option>
                 ))}
               </select>
@@ -214,6 +298,46 @@ const [newCategoryUrl, setNewCategoryUrl] = useState("");
               </div>
             </div>
           )}
+          <button
+      onClick={() => setIsAddingTech(true)}
+      className="bg-purple-600 text-white mt-4 px-6 py-2 rounded-lg hover:bg-purple-700 transition duration-300"
+    >
+      Neue Tech hinzufügen
+    </button>
+
+    {/* Formular zum Hinzufügen einer neuen Tech */}
+    {isAddingTech && (
+      <div className="space-y-4 bg-white p-6 shadow-md rounded-lg mt-4">
+        <input
+          type="text"
+          value={newTechName}
+          onChange={(e) => setNewTechName(e.target.value)}
+          placeholder="Tech-Name eingeben"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+        />
+        <input
+          type="text"
+          value={newTechUrl}
+          onChange={(e) => setNewTechUrl(e.target.value)}
+          placeholder="Tech URL eingeben"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+        />
+        <div className="flex space-x-4">
+          <button
+            onClick={addTech}
+            className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition duration-300"
+          >
+            Tech speichern
+          </button>
+          <button
+            onClick={() => setIsAddingTech(false)}
+            className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition duration-300"
+          >
+            Abbrechen
+          </button>
+        </div>
+      </div>
+    )}
         </div>
       </section>
 
@@ -239,7 +363,6 @@ const [newCategoryUrl, setNewCategoryUrl] = useState("");
                     >
                       {project.githubUrl}
                     </a>
-                    <p className="text-gray-500 text-sm">Status: {project.status}</p>
                     <p className="text-gray-500 text-sm">Kategorie: {project.category}</p>
                   </li>
                 ))}
