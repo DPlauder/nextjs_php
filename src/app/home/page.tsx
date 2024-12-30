@@ -1,29 +1,45 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Menu } from "lucide-react";
+
+interface Project {
+  name: string;
+  description: string;
+  github_url: string;
+  category_uuid: string;
+  tech_uuids: string[];
+}
+interface Category {
+  name: string;
+  url: string;
+}
+interface Tech {
+  name: string;
+  url: string;
+}
 
 export default function Home() {
 // State für Projekte und Kategorien
-const [projects, setProjects] = useState([]);
-const [categories, setCategories] = useState([]);
+const [projects, setProjects] = useState<Project[]>([]);
+const [categories, setCategories] = useState<Category[]>([]);
 
 const [isAddingProject, setIsAddingProject] = useState(false);
-const [projectName, setProjectName] = useState("");
-const [projectDescription, setProjectDescription] = useState("");
-const [githubUrl, setGithubUrl] = useState("");
-const [category, setCategory] = useState("");
+const [projectName, setProjectName] = useState<string>("");
+const [projectDescription, setProjectDescription] = useState<string>("");
+const [githubUrl, setGithubUrl] = useState<string>("");
+const [category, setCategory] = useState<string>("");
 
+const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
 
 const [isAddingCategory, setIsAddingCategory] = useState(false);
-const [newCategoryName, setNewCategoryName] = useState("");
-const [newCategoryUrl, setNewCategoryUrl] = useState("");
+const [newCategoryName, setNewCategoryName] = useState<string>("");
+const [newCategoryUrl, setNewCategoryUrl] = useState<string>("");
 
 // State für Techs hinzufügen
-const [techs, setTechs] = useState([]);
+const [techs, setTechs] = useState<Tech[]>([]);
 const [isAddingTech, setIsAddingTech] = useState(false);
-const [newTechName, setNewTechName] = useState("");
-const [newTechUrl, setNewTechUrl] = useState("");
+const [newTechName, setNewTechName] = useState<string>("");
+const [newTechUrl, setNewTechUrl] = useState<string>("");
 
-const [selectedTechs, setSelectedTechs] = useState([]);
 
 
   // Funktion zum Abrufen der Kategorien von der Datenbank
@@ -45,11 +61,7 @@ const [selectedTechs, setSelectedTechs] = useState([]);
       console.error("Error fetching categories:", error);
     }
   };
-   // useEffect, um Kategorien zu laden, wenn die Komponente gemountet wird
-   useEffect(() => {
-    fetchCategories();
-  }, []);
-
+   
   const fetchTechs = async() => {
     try{
       const response = await fetch("http://localhost?ressource=tech", {
@@ -68,16 +80,39 @@ const [selectedTechs, setSelectedTechs] = useState([]);
       console.error("Eroor fetching techs:", error);
     }
   };
+
+  const fetchProjects = async () => {
+    try {
+      const response = await fetch("http://localhost?ressource=project", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log(response);
+      if (response.ok) {
+        
+        const data = await response.json();
+        setProjects(data);
+      } else {
+        console.error("Fehler beim Laden der Projekte");
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
+
   useEffect(() => {
+    fetchCategories();
     fetchTechs();
+    fetchProjects();
   }, []);
 
 
   // Funktion zum Hinzufügen eines Projekts
   const addProject = async () => {
-    console.log(category);
       if (projectName.trim() !== "" && projectDescription.trim() !== "") {
-        const newProjectData = {
+        const newProjectData: Project = {
           name: projectName,
           description: projectDescription,
           github_url: githubUrl,
@@ -94,7 +129,8 @@ const [selectedTechs, setSelectedTechs] = useState([]);
             body: JSON.stringify(newProjectData),
           });
           if (response.ok) {
-            const responseData = await response.json();
+            console.log(projects);
+            //const responseData = await response.json();
             setProjects([...projects, newProjectData]);
             setProjectName("");
             setProjectDescription("");
@@ -131,7 +167,7 @@ const [selectedTechs, setSelectedTechs] = useState([]);
         });
         if (response.ok) {  
           // If the category is successfully added to the database
-          const responseData = await response.json();
+          //const responseData = await response.json();
           setCategories([...categories, newCategoryData]);
           setNewCategoryName("");
           setNewCategoryUrl("");
@@ -171,6 +207,11 @@ const [selectedTechs, setSelectedTechs] = useState([]);
       }
       
     }     
+  };
+
+  const getCategoryName = (uuid: string) => {
+    const category = categories.find(cat => cat.uuid === uuid);
+    return category ? category.name : "Unbekannte Kategorie";
   };
 
   return (
@@ -356,14 +397,14 @@ const [selectedTechs, setSelectedTechs] = useState([]);
                     </h3>
                     <p className="text-gray-600">{project.description}</p>
                     <a
-                      href={project.githubUrl}
+                      href={project.github_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-500 hover:underline"
                     >
-                      {project.githubUrl}
+                      {project.github_url}
                     </a>
-                    <p className="text-gray-500 text-sm">Kategorie: {project.category}</p>
+                    <p className="text-gray-500 text-sm">Kategorie: {getCategoryName(project.category_uuid)}</p>
                   </li>
                 ))}
               </ul>
