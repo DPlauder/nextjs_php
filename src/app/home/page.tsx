@@ -1,5 +1,6 @@
 import { useState, useEffect, use } from "react";
 import { Menu } from "lucide-react";
+import config from "../../../config";
 
 interface Project {
   name: string;
@@ -45,7 +46,7 @@ const [newTechUrl, setNewTechUrl] = useState<string>("");
   // Funktion zum Abrufen der Kategorien von der Datenbank
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost?ressource=category", {
+      const response = await fetch(`${config.apiBaseUrl}?ressource=category`, {
         method:"GET",
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +65,7 @@ const [newTechUrl, setNewTechUrl] = useState<string>("");
    
   const fetchTechs = async() => {
     try{
-      const response = await fetch("http://localhost?ressource=tech", {
+      const response = await fetch(`${config.apiBaseUrl}?ressource=tech`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -83,7 +84,7 @@ const [newTechUrl, setNewTechUrl] = useState<string>("");
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch("http://localhost?ressource=project", {
+      const response = await fetch(`${config.apiBaseUrl}?ressource=project`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -121,7 +122,7 @@ const [newTechUrl, setNewTechUrl] = useState<string>("");
         };
         
         try {
-          const response = await fetch("http://localhost?ressource=project", {
+          const response = await fetch(`${config.apiBaseUrl}?ressource=project`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -158,7 +159,7 @@ const [newTechUrl, setNewTechUrl] = useState<string>("");
       };
   
       try {
-        const response = await fetch("http://localhost?ressource=category", {
+        const response = await fetch(`${config.apiBaseUrl}?ressource=category`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -187,7 +188,7 @@ const [newTechUrl, setNewTechUrl] = useState<string>("");
         url: newTechUrl,
       };
       try{
-        const response = await fetch("http://localhost?ressource=tech",{
+        const response = await fetch(`${config.apiBaseUrl}?ressource=tech`,{
           method: "POST",
           headers: {
             "Content-Type": "application/json",
