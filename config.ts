@@ -1,5 +1,7 @@
+
 const config = {
-    apiBaseUrl: 'http://192.168.0.236',
+    // http:// wichtig!!!!
+    apiBaseUrl: 'https://plaudertech-solution.at/api/index.php',
 }
 
 export default config;

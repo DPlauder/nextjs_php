@@ -1,8 +1,11 @@
-import { useState, useEffect, use } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import config from "../../../config";
 
 interface Project {
+  uuid?: string;
   name: string;
   description: string;
   github_url: string;
@@ -10,10 +13,12 @@ interface Project {
   tech_uuids: string[];
 }
 interface Category {
+  uuid?: string;
   name: string;
   url: string;
 }
 interface Tech {
+  uuid?: string;
   name: string;
   url: string;
 }
@@ -44,7 +49,7 @@ const [newTechUrl, setNewTechUrl] = useState<string>("");
 
 
   // Funktion zum Abrufen der Kategorien von der Datenbank
-  const fetchCategories = async () => {
+  const fetchCategories = async () => {    
     try {
       const response = await fetch(`${config.apiBaseUrl}?ressource=category`, {
         method:"GET",
@@ -90,7 +95,6 @@ const [newTechUrl, setNewTechUrl] = useState<string>("");
           "Content-Type": "application/json",
         },
       });
-      console.log(response);
       if (response.ok) {
         
         const data = await response.json();
@@ -109,7 +113,9 @@ const [newTechUrl, setNewTechUrl] = useState<string>("");
     fetchProjects();
   }, []);
 
-
+  //************************************************
+  //  add Funktione benötigen USESTATE!!!
+  //************************************************ */
   // Funktion zum Hinzufügen eines Projekts
   const addProject = async () => {
       if (projectName.trim() !== "" && projectDescription.trim() !== "") {
