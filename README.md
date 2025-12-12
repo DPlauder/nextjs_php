@@ -150,10 +150,6 @@ npm install
 - Windows-Pfade/Schreibrechte: VS Code als Benutzer mit ausreichenden Rechten starten
 - Port belegt: `PORT=3001 npm run dev` (alternativ Ports in der Umgebung setzen)
 
-**Hinweise**
-
-- Der Ordnername deutet ggf. auf PHP hin, im aktuellen Projektkontext ist jedoch eine Next.js-Frontend-App vorhanden. Eine serverseitige PHP-Integration ist hier nicht dokumentiert.
-
 **Lizenz**
 
 - Proprietär oder projektbezogen; falls benötigt, hier ergänzen.
